@@ -1,0 +1,18 @@
+services:
+  apache:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./html:/var/www/html
+      - certs:/etc/apache2/ssl
+      - ./logs:/var/log/apache2
+    networks:
+      - net
+
+networks:
+  net:
+    driver: bridge
