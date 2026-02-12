@@ -22,7 +22,7 @@
     <main class="container">
         <section class="hero">
             <p class="hero-intro">root@server:~$ whoami</p>
-            <h1>Hola, soy [Tu Nombre].</h1>
+            <h1>Hola, soy Marcos Bolivar.</h1>
             <p style="font-size: 1.2rem; max-width: 600px;">
                 Administrador de Sistemas especializado en alta disponibilidad,
                 automatización y seguridad en la nube. Convierto infraestructuras
@@ -60,6 +60,22 @@
     <footer>
         <p>echo "Gracias por visitar"; exit 0</p>
     </footer>
+
+    <script>
+        document.querySelectorAll('.stack-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const isExpanded = item.classList.contains('expanded');
+                // Cerrar todos
+                document.querySelectorAll('.stack-item.expanded').forEach(el => {
+                    el.classList.remove('expanded');
+                });
+                // Si no estaba abierto, abrirlo
+                if (!isExpanded) {
+                    item.classList.add('expanded');
+                }
+            });
+        });
+    </script>
 
 </body>
 

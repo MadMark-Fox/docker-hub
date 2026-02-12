@@ -112,14 +112,37 @@ p {
 
 .stack-item {
     background: var(--card-bg);
+    cursor: pointer;
     padding: 1.5rem;
     border-radius: 8px;
     border-left: 4px solid var(--accent);
+    transition: border-color 0.3s, padding 0.4s ease, box-shadow 0.3s ease;
+}
+
+.stack-item.expanded {
+    grid-column: 1 / -1;
+    border-color: #67d4ff;
+    padding: 2rem;
+    box-shadow: 0 8px 25px rgba(56, 189, 248, 0.15);
 }
 
 .stack-item h3 {
     font-size: 1.1rem;
     margin-bottom: 0.5rem;
+}
+
+.stack-item p {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease, opacity 0.3s ease;
+    margin-bottom: 0;
+}
+
+.stack-item.expanded p {
+    max-height: 200px;
+    opacity: 1;
+    margin-bottom: 1rem;
 }
 
 /* Proyectos (Grid) */
