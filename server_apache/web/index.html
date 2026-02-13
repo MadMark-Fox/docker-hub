@@ -72,6 +72,9 @@
                 // Si no estaba abierto, abrirlo
                 if (!isExpanded) {
                     item.classList.add('expanded');
+                    setTimeout(() => {
+                        item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 100);
                 }
             });
         });
