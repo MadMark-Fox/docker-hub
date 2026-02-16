@@ -1,23 +1,211 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ansible Visual Editor</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        header {
+            background: #333;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: #f4f4f4;
+            border-right: 1px solid #ddd;
+            padding: 10px;
+            overflow-y: auto;
+        }
+
+        .editor-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+        }
+
+        textarea {
+            flex: 1;
+            font-family: monospace;
+            padding: 10px;
+            border: 1px solid #ccc;
+            resize: none;
+        }
+
+        .controls {
+            margin-bottom: 10px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .output {
+            height: 150px;
+            background: #222;
+            color: #0f0;
+            padding: 10px;
+            overflow-y: auto;
+            font-family: monospace;
+            white-space: pre-wrap;
+            margin-top: 10px;
+        }
+
+        button {
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+
+        .btn-run {
+            background: #28a745;
+            color: white;
+            border: none;
+        }
+
+        .btn-save {
+            background: #007bff;
+            color: white;
+            border: none;
+        }
+
+        li {
+            cursor: pointer;
+            padding: 5px;
+            color: #007bff;
+            text-decoration: underline;
+        }
+
+        li:hover {
+            background: #e9e9e9;
+        }
+    </style>
 </head>
+
 <body>
-    <h1>🟦 Ansible Visual Editor</h1>
-    <p>Editor visual de playbooks de Ansible</p>
-    <div id="status"></div>
+    <header>
+        <h3>🟦 Ansible Visual Editor</h3>
+        <span id="status">Conectando...</span>
+    </header>
+
+    <div class="container">
+        <div class="sidebar">
+            <h4>Mis Playbooks</h4>
+            <ul id="file-list"></ul>
+            <hr>
+            <input type="text" id="new-filename" placeholder="nuevo_playbook.yml" style="width: 90%;">
+            <button onclick="createNew()">Crear Nuevo</button>
+        </div>
+
+        <div class="editor-area">
+            <div class="controls">
+                <strong id="current-file">Sin archivo</strong>
+                <button class="btn-save" onclick="saveFile()">Guardar</button>
+                <button class="btn-run" onclick="runFile()">▶ Ejecutar Ansible</button>
+            </div>
+            <textarea id="code-editor" placeholder="Escribe tu código YAML aquí..."></textarea>
+            <div class="output" id="console-output">Resultados de ejecución aparecerán aquí...</div>
+        </div>
+    </div>
+
     <script>
-        fetch('/api/health')
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('status').textContent = 'API Status: ' + data.status;
+        let currentFilename = "";
+
+        // Al cargar la página
+        document.addEventListener('DOMContentLoaded', () => {
+            checkHealth();
+            loadFileList();
+        });
+
+        function checkHealth() {
+            fetch('/api/health')
+                .then(res => res.json())
+                .then(data => document.getElementById('status').textContent = 'API: ' + data.status)
+                .catch(() => document.getElementById('status').textContent = 'API Offline');
+        }
+
+        function loadFileList() {
+            fetch('/api/playbooks')
+                .then(res => res.json())
+                .then(data => {
+                    const list = document.getElementById('file-list');
+                    list.innerHTML = '';
+                    data.playbooks.forEach(file => {
+                        const li = document.createElement('li');
+                        li.textContent = file;
+                        li.onclick = () => loadFile(file);
+                        list.appendChild(li);
+                    });
+                });
+        }
+
+        function loadFile(filename) {
+            currentFilename = filename;
+            document.getElementById('current-file').textContent = filename;
+            fetch(`/api/playbooks/${filename}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('code-editor').value = data.content;
+                });
+        }
+
+        function createNew() {
+            const name = document.getElementById('new-filename').value;
+            if (!name) return alert("Escribe un nombre");
+            currentFilename = name.endsWith('.yml') ? name : name + '.yml';
+            document.getElementById('current-file').textContent = currentFilename;
+            document.getElementById('code-editor').value = "---\n- name: Nuevo Playbook\n  hosts: localhost\n  tasks:\n    - debug:\n        msg: 'Hola mundo'";
+        }
+
+        function saveFile() {
+            if (!currentFilename) return alert("Crea o selecciona un archivo primero");
+            const content = document.getElementById('code-editor').value;
+
+            fetch('/api/playbooks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename: currentFilename, content: content })
             })
-            .catch(() => {
-                document.getElementById('status').textContent = 'API no disponible';
-            });
+                .then(res => res.json())
+                .then(data => {
+                    alert(data.message);
+                    loadFileList();
+                });
+        }
+
+        function runFile() {
+            if (!currentFilename) return alert("Selecciona un archivo");
+            const outputDiv = document.getElementById('console-output');
+            outputDiv.textContent = "Ejecutando Ansible... por favor espera...";
+
+            fetch(`/api/playbooks/${currentFilename}/run`, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        outputDiv.textContent = "Error: " + data.error;
+                    } else {
+                        outputDiv.textContent = `Exit Code: ${data.return_code}\n\nSTDOUT:\n${data.stdout}\n\nSTDERR:\n${data.stderr}`;
+                    }
+                });
+        }
     </script>
 </body>
+
 </html>
