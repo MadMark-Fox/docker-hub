@@ -21,10 +21,7 @@ RUN mkdir -p /opt/ansible-visual/api \
 RUN python3 -m venv /opt/ansible-visual/api/venv
 
 # Instalar dependencias de Python en el entorno virtual
-RUN /opt/ansible-visual/api/venv/bin/pip install --no-cache-dir \
-    fastapi \
-    uvicorn \
-    gunicorn
+RUN /opt/ansible-visual/api/venv/bin/pip install --no-cache-dir fastapi uvicorn gunicorn
 
 # Copiar configuración de Nginx
 COPY nginx.conf /etc/nginx/sites-available/default
