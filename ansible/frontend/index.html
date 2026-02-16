@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ansible Visual Editor</title>
+</head>
+<body>
+    <h1>🟦 Ansible Visual Editor</h1>
+    <p>Editor visual de playbooks de Ansible</p>
+    <div id="status"></div>
+    <script>
+        fetch('/api/health')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('status').textContent = 'API Status: ' + data.status;
+            })
+            .catch(() => {
+                document.getElementById('status').textContent = 'API no disponible';
+            });
+    </script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+services:
+  ansible-visual:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ansible_visual
+    ports:
+      - "8089:80"
+    volumes:
+      - ansible_playbooks:/opt/ansible-visual/api/playbooks
+    restart: unless-stopped
+
+volumes:
+  ansible_playbooks:
